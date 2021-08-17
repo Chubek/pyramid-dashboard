@@ -22,4 +22,5 @@ def doc_generator(df, index_name):
             }
     return True
 
-insert_into_es = lambda df, index_name: helpers.bulk(es, doc_generator(df, index_name))
+def insert_doc(df, index_name):
+    return helpers.bulk(es, doc_generator(df, index_name))
