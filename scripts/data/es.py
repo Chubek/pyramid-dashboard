@@ -21,6 +21,17 @@ def get_results(index_name, query_type, field_name, field_match):
     return df
 
 
+def get_all_results(index_name):
+    res = es.search(index=index_name, body={"query":{"match_all":{}}})
+
+    sources = [r['_source'] for r in res['hits']['hits']]
+
+    df = pd.DataFrame(sources)
+
+    df[temp['DATE_TIME_COLUMN']] = df[temp['DATE_TIME_COLUMN']].apply(lambda x: to_datetime(x))
+
+    return df
+
 def doc_generator(df, index_name):
     df_iter = df.iterrows()
     for index, document in df_iter:
