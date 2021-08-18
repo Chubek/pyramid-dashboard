@@ -1,4 +1,3 @@
-from typing import TextIO
 import plotly.express as px
 
 def construct_bar_chart(df, x, y, color, barmode, title):
