@@ -47,3 +47,5 @@ def insert_file_to_es(file_name, index_name):
     df = pd.read_csv(os.path.join("tmp", file_name))
 
     insert_doc(df, index_name)
+
+    os.remove(os.path.join("tmp", file_name))
