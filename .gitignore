@@ -29,3 +29,6 @@ package-lock.json
 app/base/static/assets/node_modules
 app/base/static/assets/yarn.lock
 app/base/static/assets/.temp
+
+
+tmp/

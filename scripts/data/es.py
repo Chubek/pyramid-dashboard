@@ -24,6 +24,7 @@ def get_results(index_name, query_type, field_name, field_match):
 def get_all_results(index_name):
     res = es.search(index=index_name, body={"query":{"match_all":{}}})
 
+
     sources = [r['_source'] for r in res['hits']['hits']]
 
     df = pd.DataFrame(sources)
