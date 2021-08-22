@@ -1,0 +1,13 @@
+services:
+  dash:
+    build:
+        context: .
+        dockerfile: Dockerfile.dash
+    ports:
+        - "80:8000"
+  cron:
+    build:
+        context: .
+        dockerfile: Dockerfile.cron
+    ports:
+        - "85:8000"

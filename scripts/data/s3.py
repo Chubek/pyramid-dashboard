@@ -4,6 +4,7 @@ import pandas as pd
 from scripts.data.es import insert_doc
 s3_resource = boto3.resource('s3')
 from dotenv import dotenv_values
+import datetime
 
 temp = dotenv_values(".env")
 
@@ -37,9 +38,9 @@ def download_file(bucket_name):
 
         if file_name in already_added:
             continue
-
+        dt = datetime.datetime.now()
         s3.Object(bucket_name, file_name).download_file(os.path.join("tmp", file_name))
-        insert_file_to_es(file_name)
+        insert_file_to_es(file_name, f"{file_name}_{dt.day}/{dt.month}/{dt.year}")
         add_to_added(file_name)
 
 
