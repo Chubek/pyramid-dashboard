@@ -40,13 +40,16 @@ def download_file(bucket_name):
             continue
         dt = datetime.datetime.now()
         s3.Object(bucket_name, file_name).download_file(os.path.join("tmp", file_name))
-        insert_file_to_es(file_name, f"{file_name}_{dt.day}/{dt.month}/{dt.year}")
+        insert_file_to_es(file_name)
         add_to_added(file_name)
 
 
-def insert_file_to_es(file_name, index_name):
+def insert_file_to_es(file_name):
     df = pd.read_csv(os.path.join("tmp", file_name))
 
-    insert_doc(df, index_name)
+    products_unique = df[temp['PRODUCT_COLUMN']].unique()
+
+    for prod in products_unique:
+        insert_doc(df[df[temp['PRODUCT_COLUMN']] == prod], prod)
 
     os.remove(os.path.join("tmp", file_name))

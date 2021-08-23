@@ -7,10 +7,11 @@ from dash.dependencies import Input, Output
 from scripts.dashboard.plot import *
 from scripts.data.filter_by_time import *
 from scripts.data.filter_data import *
-from scripts.data.es import get_all_results
+from scripts.data.es import get_all_indices, get_all_results
+from scripts.util.format_date import *
 from dotenv import dotenv_values
 import dash_table
-
+from datetime import date
 
 temp = dotenv_values(".env")
 
@@ -35,7 +36,51 @@ CONTENT_STYLE = {
     'overflowX': 'hidden'
 }
 
-df = get_all_results(index_name=temp['INDEX_NAME'])
+list_choices = [{"label": l, "value": l} for l in get_all_indices()]
+list_choices_time = [{"label": l, "value": l} for l in ["Daily", "Weekly", "Monthly", "Quarterly"]]
+
+df = get_all_results(index_name=list_choices[0]["value"])
+
+card_dropdown = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Product", id="card-bar-title"),
+            dcc.Dropdown(
+                id='metrics-dropdown',
+                options=list_choices,
+                value=list_choices[0]["value"]
+            ),
+        ]
+    )
+)
+
+card_dropdown_date = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Time Range", id="card-bar-title"),
+            dcc.Dropdown(
+                id='time-dropdown',
+                options=list_choices_time,
+                value=list_choices_time[0]["value"]
+            ),
+        ]
+    )
+)
+
+card_dropdown_date = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Start and End Date", id="card-bar-title"),
+            dcc.DatePickerRange(
+                id='date-picker-range',
+                min_date_allowed=date(1995, 8, 5),
+                max_date_allowed=date.today(),
+                initial_visible_month=return_date(df.iloc[0][temp['DATE_TIME_COLUMN']]),
+                end_date=return_date(df.iloc[0][temp['DATE_TIME_COLUMN']])
+    ),
+        ]
+    )
+)
 
 card_bar = dbc.Card(
     dbc.CardBody(
@@ -155,11 +200,17 @@ def render_page_content(pathname):
     if pathname == '/metrics':
         return html.Div(
     [
-        dbc.Row( 
+        dbc.Row([
             dbc.Col(
-                   card_table,
+                    card_table,
                     width={"size": 12, "order": 1, "offset": 1},
-                )     
+                ),
+            dbc.Col(
+                    card_dropdown,
+                    width={"size": 6, "order": 1, "offset": 1},
+                ),
+                
+                 ]    
                         
         ),
         dbc.Row(
@@ -252,6 +303,32 @@ def update_table(page_current,page_size, filter):
     return dff.iloc[
         page_current*page_size:(page_current+ 1)*page_size
     ].to_dict('records')
+
+
+@app.callback(
+    Output('table-filtering', "data"),
+    Output('table-filtering', "page_current"),
+    Output('table-filtering', "filter_query"),
+    [Input('metrics-dropdown', 'value')])
+def update_output(value):
+    return get_all_results(value), 0, ""
+
+@app.callback(
+    Output('table-filtering', "data"),
+    Output('table-filtering', "page_current"),
+    Output('table-filtering', "filter_query"),
+    [Input('my-date-picker-range', 'start_date'),
+    Input('my-date-picker-range', 'end_date'),
+    Input('time-dropdown', 'value')])
+def update_table(start_date, end_date, dropdown):
+    if dropdown == "Daily":
+        df_filt = filter_daily(df, start_date)
+    elif dropdown == "Weekly":
+        df_filt = filter_weekly(df, start_date)
+    elif dropdown == "Monthly":
+        df_filt = filter_monthly(df, start_date)
+
+    return df_filt, 0, ""
 
 
 if __name__ == '__main__':

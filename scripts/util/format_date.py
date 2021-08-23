@@ -1,4 +1,5 @@
 from dotenv import dotenv_values
+from datetime import datetime
 
 temp = dotenv_values(".env")
 
@@ -15,3 +16,7 @@ def format_date(date):
     rep = rep.replace("MM", month)
 
     return rep
+
+
+def return_date(date_str):
+    return datetime.strftime(date_str, "%d/%M/%Y")

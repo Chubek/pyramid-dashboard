@@ -8,6 +8,8 @@ temp = dotenv_values(".env")
 
 es = Elasticsearch([temp['ES_HOST']], maxsize=25)
 
+def get_all_indices():
+    return es.indices.get_alias("*")
 
 def get_results(index_name, query_type, field_name, field_match):
     res = es.search(index=index_name, body={"query":{query_type:{field_name: field_match}}})
