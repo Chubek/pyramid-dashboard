@@ -1,4 +1,5 @@
 import dash
+from dash_bootstrap_components._components.Col import Col
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
@@ -37,7 +38,14 @@ CONTENT_STYLE = {
 }
 
 list_choices = [{"label": l, "value": l} for l in get_all_indices()]
-list_choices_time = [{"label": l, "value": l} for l in ["Daily", "Weekly", "Monthly", "Quarterly"]]
+list_choices_time = [{"label": l, "value": l} for l in ["Daily", "Weekly", "Monthly"]]
+list_choices_period = {
+    "Daily":  [{"label": l, "value": int(l)} for l in ["30", "90", "180", "360"]],
+    "Weekly":  [{"label": l, "value": int(l)} for l in ["4", "12", "24", "52"]],
+    "Monthly":  [{"label": l, "value": int(l)} for l in ["3", "6", "9", "12", "15", "18", "24"]],
+}
+
+list_choices_metrics = [{"label": l, "value": int(l)} for l in [col for col in list(df.columns) if "Metric" in Col]]
 
 df = get_all_results(index_name=list_choices[0]["value"])
 
@@ -49,6 +57,19 @@ card_dropdown = dbc.Card(
                 id='metrics-dropdown',
                 options=list_choices,
                 value=list_choices[0]["value"]
+            ),
+        ]
+    )
+)
+
+card_period = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Period", id="card-bar-title"),
+            dcc.Dropdown(
+                id='period-dropdown',
+                options=list_choices_period["Daily"],
+                value=list_choices_period["Daily"][0]
             ),
         ]
     )
@@ -81,19 +102,41 @@ card_dropdown_date = dbc.Card(
         ]
     )
 )
-
+card_dropdown_bar = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Metric for Bar Chart", id="bar-metric-title"),
+            dcc.Dropdown(
+                id='bar-dropdown',
+                options=list_choices_metrics,
+                value=list_choices_metrics[0]["value"]
+            ),
+        ]
+    )
+)
 card_bar = dbc.Card(
     dbc.CardBody(
         [
             html.H4("Bar Chart", id="card-bar-title"),
             dcc.Graph(
                     id='bar-chart',
-                    figure=construct_bar_chart(df, "Customer Name", "Metric A", "Metric C", "group", "Customer Name - Metric A Plot")
+                    figure=construct_bar_chart(df, temp['DATE_TIME_COLUMN'], "Metric A", "group", "Customer Name - Metric A Plot")
     )
         ]
     )
 )
-
+card_dropdown_line = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Metric for Line Chart", id="line-metric-title"),
+            dcc.Dropdown(
+                id='line-dropdown',
+                options=list_choices_metrics,
+                value=list_choices_metrics[0]["value"]
+            ),
+        ]
+    )
+)
 
 card_line = dbc.Card(
     dbc.CardBody(
@@ -101,13 +144,36 @@ card_line = dbc.Card(
             html.H4("Line Chart", id="card-line-title"),
             dcc.Graph(
                     id='line-chart',
-                    figure=construct_line_chart(df, "Customer Name", "Metric A", "Metric C", "Customer Name - Metric A Plot")
+                    figure=construct_line_chart(df, temp['DATE_TIME_COLUMN'], "Metric A", "Customer Name - Metric A Plot")
     )
         ]
     )
 )
 
-
+card_dropdown_scatter_x = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Metric for Scatter Chart X", id="xsx-metric-title"),
+            dcc.Dropdown(
+                id='sxs-dropdown',
+                options=list_choices_metrics,
+                value=list_choices_metrics[0]["value"]
+            ),
+        ]
+    )
+)
+card_dropdown_scatter_y = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Metric for Scatter Chart X", id="ysy-metric-title"),
+            dcc.Dropdown(
+                id='sys-dropdown',
+                options=list_choices_metrics,
+                value=list_choices_metrics[0]["value"]
+            ),
+        ]
+    )
+)
 card_scatter = dbc.Card(
     dbc.CardBody(
         [
@@ -120,13 +186,27 @@ card_scatter = dbc.Card(
     )
 )
 
+card_dropdown_hist = dbc.Card(
+    dbc.CardBody(
+        [
+            html.H4("Pick a Metric for Histogram", id="hist-metric-title"),
+            dcc.Dropdown(
+                id='hist-dropdown',
+                options=list_choices_metrics,
+                value=list_choices_metrics[0]["value"]
+            ),
+        ]
+    )
+)
+
+
 card_histogram = dbc.Card(
     dbc.CardBody(
         [
             html.H4("Histogram", id="card-histogram-title"),
             dcc.Graph(
-                    id='scatter-chart',
-                    figure=construct_histogram(df, "Metric C", "Metric C Histogram")
+                    id='hist-chart',
+                    figure=construct_histogram(df, "Metric A", "Metric A Histogram")
     )
         ]
     )
@@ -277,6 +357,30 @@ def split_filter_part(filter_part):
 
     return [None] * 3
 
+@app.callback(
+    Output('bar-chart', "figure"),
+    Input('bar-dropdown', "value"))
+def change_bar_chart(value):
+    return construct_bar_chart(df, temp['DATE_TIME_COLUMN'], value, "group", f"Customer Name - {value} Plot")
+
+@app.callback(
+    Output('line-chart', "figure"),
+    Input('line-dropdown', "value"))
+def change_line_chart(value):
+    return construct_line_chart(df, temp['DATE_TIME_COLUMN'], value, f"Customer Name - {value} Plot")
+
+@app.callback(
+    Output('line-chart', "figure"),
+    [Input('sxs-dropdown', "value"),
+    Input('sys-dropdown', "value")])
+def change_scattere_chart(value_x, value_y):
+    return construct_scatter_chart(df, value_x, value_y, f"{value_x} - {value_y} Plot")
+
+@app.callback(
+    Output('hist-chart', "figure"),
+    Input('hist-dropdown', "value"))
+def change_line_chart(value):
+    return construct_histogram(df, value, f"{value} Histogram")
 
 @app.callback(
     Output('table-filtering', "data"),
@@ -285,6 +389,7 @@ def split_filter_part(filter_part):
     Input('table-filtering', "filter_query"))
 def update_table(page_current,page_size, filter):
     print(filter)
+    global df
     filtering_expressions = filter.split(' && ')
     dff = df
     for filter_part in filtering_expressions:
@@ -306,12 +411,14 @@ def update_table(page_current,page_size, filter):
 
 
 @app.callback(
+    Output('period-dropdown', 'value'),
+    Output('period-dropdown', 'options'),
     Output('table-filtering', "data"),
     Output('table-filtering', "page_current"),
     Output('table-filtering', "filter_query"),
     [Input('metrics-dropdown', 'value')])
 def update_output(value):
-    return get_all_results(value), 0, ""
+    return get_all_results(value), 0, "", list_choices_period[value], list_choices_period[value][0]
 
 @app.callback(
     Output('table-filtering', "data"),
@@ -319,15 +426,21 @@ def update_output(value):
     Output('table-filtering', "filter_query"),
     [Input('my-date-picker-range', 'start_date'),
     Input('my-date-picker-range', 'end_date'),
-    Input('time-dropdown', 'value')])
-def update_table(start_date, end_date, dropdown):
+    Input('time-dropdown', 'value'),
+    Input('period-dropdown', 'value')])
+def update_table(start_date, end_date, dropdown, period):
+    global df
     if dropdown == "Daily":
-        df_filt = filter_daily(df, start_date)
+        df_filt = filter_daily(df, start_date, period)
+        df = df_filt
     elif dropdown == "Weekly":
-        df_filt = filter_weekly(df, start_date)
+        df_filt = filter_weekly(df, start_date, period)
+        df = df_filt
     elif dropdown == "Monthly":
-        df_filt = filter_monthly(df, start_date)
-
+        df_filt = filter_monthly(df, start_date, period)
+        df = df_filt
+    else:
+        df_filt = df
     return df_filt, 0, ""
 
 

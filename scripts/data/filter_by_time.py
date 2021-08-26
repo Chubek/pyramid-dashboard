@@ -8,16 +8,16 @@ temp = dotenv_values(".env")
 
 
 
-def filter_daily(df, day_date):
-    if day_date == "today":
-        dt = datetime.datetime.now()
+def filter_daily(df, day_start, num_days):
+    day_end = day_start + datetime.timedelta(days=num_days)
 
-    ts = pd.Timestamp(format_date(dt))
+    ts_start = pd.Timestamp(format_date(day_start))
+    ts_end = pd.Timestamp(format_date(day_end))
 
-    return df[df[temp['DATE_TIME_COLUMN']] == ts]
+    return df[(df[temp['DATE_TIME_COLUMN']] > ts_start) & (df[temp['DATE_TIME_COLUMN']] <= ts_end)]
 
-def filter_weekly(df, week_start):
-    week_end = week_start + datetime.timedelta(days=7)
+def filter_weekly(df, week_start, num_weeks):
+    week_end = week_start + datetime.timedelta(days=7 * num_weeks)
 
     ts_start = pd.Timestamp(format_date(week_start))
     ts_end = pd.Timestamp(format_date(week_end))
@@ -25,8 +25,8 @@ def filter_weekly(df, week_start):
     return df[(df[temp['DATE_TIME_COLUMN']] > ts_start) & (df[temp['DATE_TIME_COLUMN']] <= ts_end)]
 
 
-def filter_monthly(df, day_start):
-    day_end = day_start + datetime.timedelta(days=get_days(day_start))
+def filter_monthly(df, day_start, num_months):
+    day_end = day_start + datetime.timedelta(days=get_days(day_start) * num_months)
 
     ts_start = pd.Timestamp(format_date(day_start))
     ts_end = pd.Timestamp(format_date(day_end))
