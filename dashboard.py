@@ -1,5 +1,6 @@
 import dash
 from dash_bootstrap_components._components.Col import Col
+from dash_bootstrap_components._components.Row import Row
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
@@ -44,10 +45,10 @@ list_choices_period = {
     "Weekly":  [{"label": l, "value": int(l)} for l in ["4", "12", "24", "52"]],
     "Monthly":  [{"label": l, "value": int(l)} for l in ["3", "6", "9", "12", "15", "18", "24"]],
 }
-
-list_choices_metrics = [{"label": l, "value": int(l)} for l in [col for col in list(df.columns) if "Metric" in Col]]
-
 df = get_all_results(index_name=list_choices[0]["value"])
+
+list_choices_metrics = [{"label": l, "value": l} for l in [col for col in list(df.columns) if "metric" in col]]
+
 
 card_dropdown = dbc.Card(
     dbc.CardBody(
@@ -69,13 +70,13 @@ card_period = dbc.Card(
             dcc.Dropdown(
                 id='period-dropdown',
                 options=list_choices_period["Daily"],
-                value=list_choices_period["Daily"][0]
+                value=list_choices_period["Daily"][0]["value"]
             ),
         ]
     )
 )
 
-card_dropdown_date = dbc.Card(
+card_dropdown_time = dbc.Card(
     dbc.CardBody(
         [
             html.H4("Pick a Time Range", id="card-bar-title"),
@@ -120,7 +121,7 @@ card_bar = dbc.Card(
             html.H4("Bar Chart", id="card-bar-title"),
             dcc.Graph(
                     id='bar-chart',
-                    figure=construct_bar_chart(df, temp['DATE_TIME_COLUMN'], "Metric A", "group", "Customer Name - Metric A Plot")
+                    figure=construct_bar_chart(df, temp['DATE_TIME_COLUMN'], list_choices_metrics[0]["value"], "group", "Customer Name - Metric A Plot")
     )
         ]
     )
@@ -144,7 +145,7 @@ card_line = dbc.Card(
             html.H4("Line Chart", id="card-line-title"),
             dcc.Graph(
                     id='line-chart',
-                    figure=construct_line_chart(df, temp['DATE_TIME_COLUMN'], "Metric A", "Customer Name - Metric A Plot")
+                    figure=construct_line_chart(df, temp['DATE_TIME_COLUMN'], list_choices_metrics[0]["value"], "Customer Name - Metric A Plot")
     )
         ]
     )
@@ -180,7 +181,7 @@ card_scatter = dbc.Card(
             html.H4("Scatter Chart", id="card-scatter-title"),
             dcc.Graph(
                     id='scatter-chart',
-                    figure=construct_scatter_chart(df, "Metric C", "Metric A", "Metric C - Metric A Plot")
+                    figure=construct_scatter_chart(df, list_choices_metrics[1]["value"], list_choices_metrics[0]["value"], "Metric C - Metric A Plot")
     )
         ]
     )
@@ -206,7 +207,7 @@ card_histogram = dbc.Card(
             html.H4("Histogram", id="card-histogram-title"),
             dcc.Graph(
                     id='hist-chart',
-                    figure=construct_histogram(df, "Metric A", "Metric A Histogram")
+                    figure=construct_histogram(df, list_choices_metrics[0]["value"], "Metric A Histogram")
     )
         ]
     )
@@ -285,35 +286,55 @@ def render_page_content(pathname):
                     card_table,
                     width={"size": 12, "order": 1, "offset": 1},
                 ),
-            dbc.Col(
+            dbc.Col([
+                dbc.Row(
                     card_dropdown,
-                    width={"size": 6, "order": 1, "offset": 1},
                 ),
+                dbc.Row(
+                    card_period,
+                ),
+                dbc.Row(
+                    card_dropdown_time,
+                ),
+                dbc.Row(
+                    card_dropdown_date,
+                ),
+            ]),      
+
+
+
                 
                  ]    
                         
         ),
         dbc.Row(
             [
-                dbc.Col(
-                    card_bar,
-                    width={"size": 8, "order": "last", "offset": 1},
-                ),
-                dbc.Col(
-                    card_line,
-                    width={"size": 8, "order": 1, "offset": 1},
-                )
+                dbc.Row([
+                    dbc.Col(card_bar,
+                        width={"size": 8, "order": "last", "offset": 1}),
+                    dbc.Row(card_dropdown_bar)
+                ]),
+                dbc.Row([
+                    dbc.Col(card_line,
+                        width={"size": 8, "order": "last", "offset": 1}),
+                    dbc.Col(card_dropdown_line)
+                ]),
             ]
         ),
         dbc.Row([
-            dbc.Col(
-                card_histogram,
-                width={"size": 8, "offset": 1},
-            ),
-                dbc.Col(
-                    card_scatter,
-                    width={"size": 8, "offset": 1},
-                ),
+                dbc.Row([
+                    dbc.Col(card_scatter,
+                        width={"size": 8, "order": "last", "offset": 1}),
+                    dbc.Col([
+                        dbc.Row(card_dropdown_scatter_x),
+                        dbc.Row(card_dropdown_scatter_y)
+                    ])
+                ]),
+                dbc.Row([
+                    dbc.Col(card_histogram,
+                        width={"size": 8, "order": "last", "offset": 1}),
+                    dbc.Col(card_dropdown_hist)
+                ]),
         ]),
     ]
 )
@@ -370,7 +391,7 @@ def change_line_chart(value):
     return construct_line_chart(df, temp['DATE_TIME_COLUMN'], value, f"Customer Name - {value} Plot")
 
 @app.callback(
-    Output('line-chart', "figure"),
+    Output('scatter-chart', "figure"),
     [Input('sxs-dropdown', "value"),
     Input('sys-dropdown', "value")])
 def change_scattere_chart(value_x, value_y):
@@ -386,62 +407,56 @@ def change_line_chart(value):
     Output('table-filtering', "data"),
     Input('table-filtering', "page_current"),
     Input('table-filtering', "page_size"),
-    Input('table-filtering', "filter_query"))
-def update_table(page_current,page_size, filter):
-    print(filter)
-    global df
-    filtering_expressions = filter.split(' && ')
-    dff = df
-    for filter_part in filtering_expressions:
-        col_name, operator, filter_value = split_filter_part(filter_part)
-
-        if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
-            # these operators match pandas series operator method names
-            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
-        elif operator == 'contains':
-            dff = dff.loc[dff[col_name].str.contains(filter_value)]
-        elif operator == 'datestartswith':
-            # this is a simplification of the front-end filtering logic,
-            # only works with complete fields in standard format
-            dff = dff.loc[dff[col_name].str.startswith(filter_value)]
-
-    return dff.iloc[
-        page_current*page_size:(page_current+ 1)*page_size
-    ].to_dict('records')
-
-
-@app.callback(
-    Output('period-dropdown', 'value'),
-    Output('period-dropdown', 'options'),
-    Output('table-filtering', "data"),
-    Output('table-filtering', "page_current"),
-    Output('table-filtering', "filter_query"),
-    [Input('metrics-dropdown', 'value')])
-def update_output(value):
-    return get_all_results(value), 0, "", list_choices_period[value], list_choices_period[value][0]
-
-@app.callback(
-    Output('table-filtering', "data"),
-    Output('table-filtering', "page_current"),
-    Output('table-filtering', "filter_query"),
-    [Input('my-date-picker-range', 'start_date'),
-    Input('my-date-picker-range', 'end_date'),
+    Input('table-filtering', "filter_query"),
+    Input('date-picker-range', 'start_date'),
+    Input('date-picker-range', 'end_date'),
     Input('time-dropdown', 'value'),
-    Input('period-dropdown', 'value')])
-def update_table(start_date, end_date, dropdown, period):
+    Input('period-dropdown', 'value'),
+    Input('metrics-dropdown', 'value'))
+def update_table(page_current,page_size, filter, start_date, end_date, dropdown, period, metric):
+    ctx = dash.callback_context
     global df
-    if dropdown == "Daily":
-        df_filt = filter_daily(df, start_date, period)
-        df = df_filt
-    elif dropdown == "Weekly":
-        df_filt = filter_weekly(df, start_date, period)
-        df = df_filt
-    elif dropdown == "Monthly":
-        df_filt = filter_monthly(df, start_date, period)
-        df = df_filt
+
+    if not ctx.triggered:
+        input_id = 'No clicks yet'
     else:
-        df_filt = df
-    return df_filt, 0, ""
+        input_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if input_id == "table-filtering":
+        filtering_expressions = filter.split(' && ')
+        dff = df
+        for filter_part in filtering_expressions:
+            col_name, operator, filter_value = split_filter_part(filter_part)
+
+            if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
+                # these operators match pandas series operator method names
+                dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+            elif operator == 'contains':
+                dff = dff.loc[dff[col_name].str.contains(filter_value)]
+            elif operator == 'datestartswith':
+                # this is a simplification of the front-end filtering logic,
+                # only works with complete fields in standard format
+                dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+
+        return dff.iloc[
+            page_current*page_size:(page_current+ 1)*page_size
+        ].to_dict('records')
+    elif input_id == "metrics-dropdown":
+        return get_all_results(metric), 0, "", list_choices_period[metric], list_choices_period[metric][0]
+    elif input_id =="time-dropdown" or input_id == "period-dropdown" or input_id == "date-picker-range":
+        if dropdown == "Daily":
+            df_filt = filter_daily(df, start_date, period)
+            df = df_filt
+        elif dropdown == "Weekly":
+            df_filt = filter_weekly(df, start_date, period)
+            df = df_filt
+        elif dropdown == "Monthly":
+            df_filt = filter_monthly(df, start_date, period)
+            df = df_filt
+        else:
+            df_filt = df
+        return df_filt, 0, ""
+
 
 
 if __name__ == '__main__':

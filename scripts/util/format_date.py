@@ -1,5 +1,5 @@
 from dotenv import dotenv_values
-from datetime import datetime
+from datetime import date, datetime
 
 temp = dotenv_values(".env")
 
@@ -19,4 +19,5 @@ def format_date(date):
 
 
 def return_date(date_str):
-    return datetime.strftime(date_str, "%d/%M/%Y")
+    splet = date_str.split("/")
+    return datetime.date(splet[2])
