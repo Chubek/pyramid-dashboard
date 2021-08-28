@@ -20,4 +20,4 @@ def format_date(date):
 
 def return_date(date_str):
     splet = date_str.split("/")
-    return datetime.date(splet[2])
+    return datetime.date(splet[2], splet[0], splet[1])

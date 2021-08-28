@@ -55,7 +55,7 @@ card_dropdown = dbc.Card(
         [
             html.H4("Pick a Product", id="card-bar-title"),
             dcc.Dropdown(
-                id='metrics-dropdown',
+                id='product-dropdown',
                 options=list_choices,
                 value=list_choices[0]["value"]
             ),
@@ -93,13 +93,14 @@ card_dropdown_date = dbc.Card(
     dbc.CardBody(
         [
             html.H4("Pick a Start and End Date", id="card-bar-title"),
-            dcc.DatePickerRange(
+            dcc.DatePickerSingle(
                 id='date-picker-range',
                 min_date_allowed=date(1995, 8, 5),
                 max_date_allowed=date.today(),
-                initial_visible_month=return_date(df.iloc[0][temp['DATE_TIME_COLUMN']]),
-                end_date=return_date(df.iloc[0][temp['DATE_TIME_COLUMN']])
-    ),
+                initial_visible_month=df.iloc[0][temp['DATE_TIME_COLUMN']] ,
+                date=df.iloc[0][temp['DATE_TIME_COLUMN']] ,
+                
+                 ),
         ]
     )
 )
@@ -274,6 +275,14 @@ operators = [['ge ', '>='],
              ['contains '],
              ['datestartswith ']]
 
+@app.callback(
+    Output("period-dropdown", "options"),
+    Output("period-dropdown", "value"),
+    Input("time-dropdown", "value"))
+def time_period(value):
+    print(list_choices_period[value], list_choices_period[value][0]['value'])
+    return list_choices_period[value], list_choices_period[value][0]['value']
+
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
     if pathname == "/":
@@ -408,15 +417,14 @@ def change_line_chart(value):
     Input('table-filtering', "page_current"),
     Input('table-filtering', "page_size"),
     Input('table-filtering', "filter_query"),
-    Input('date-picker-range', 'start_date'),
-    Input('date-picker-range', 'end_date'),
+    Input('date-picker-range', 'date'),
     Input('time-dropdown', 'value'),
     Input('period-dropdown', 'value'),
-    Input('metrics-dropdown', 'value'))
-def update_table(page_current,page_size, filter, start_date, end_date, dropdown, period, metric):
+    Input('product-dropdown', 'value'))
+def update_table(page_current,page_size, filter, start_date, dropdown, period, metric):
     ctx = dash.callback_context
     global df
-
+    print(ctx.triggered)
     if not ctx.triggered:
         input_id = 'No clicks yet'
     else:
