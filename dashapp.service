@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/dashapp
 Environment="PATH=/home/ubuntu/dashapp/venv/bin"
-ExecStart=/home/ubuntu/dashapp/venv/bin/gunicorn -b :8000 -w 4 --access-logfile - --error-logfile - dashboard:app.server
+ExecStart=/venv/bin/gunicorn -b :8000 -w 4 --access-logfile - --error-logfile - dashboard:app.server
 Restart=always
 
 [Install]
