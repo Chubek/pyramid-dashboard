@@ -14,10 +14,13 @@ from scripts.util.format_date import *
 from dotenv import dotenv_values
 import dash_table
 from datetime import date
+from flask import Flask
+
 
 temp = dotenv_values(".env")
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = Flask(__name__)
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], server=server)
 app.config.suppress_callback_exceptions = True
 
 TABLE_STYLE = {'overflowX': 'scroll', 'height': 500}
@@ -483,4 +486,5 @@ def update_table(page_current,page_size, filter, start_date, dropdown, period, m
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    #app.run_server(debug=True)
+    server.run()
