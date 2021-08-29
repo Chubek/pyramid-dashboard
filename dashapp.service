@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 User=ubuntu
-WorkingDirectory=~/dashapp
-Environment="PATH=~/dashapp/venv/bin"
-ExecStart=~/dashapp/venv/bin/gunicorn -b :8000 -w 4 --access-logfile - --error-logfile - dashboard:app.server
+WorkingDirectory=/home/dashapp
+Environment="PATH=/home/dashapp/venv/bin"
+ExecStart=/home/dashapp/venv/bin/gunicorn -b :8000 -w 4 --access-logfile - --error-logfile - dashboard:app.server
 Restart=always
 
 [Install]
