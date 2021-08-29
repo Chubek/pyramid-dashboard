@@ -6,7 +6,15 @@ from scripts.util.to_datetime import to_datetime
 
 temp = dotenv_values(".env")
 
-es = Elasticsearch([temp['ES_HOST']], maxsize=25)
+current_es_host = temp[temp['MAIN_ES_HOST']]
+es = Elasticsearch(temp[temp['MAIN_ES_HOST']], maxsize=25)
+
+def change_es_host(new_host):
+    global es, current_es_host
+    
+    if new_host != current_es_host:
+        es = Elasticsearch(new_host, maxsize=25)
+
 
 def get_all_indices():
     return [l for l in list(es.indices.get_alias("*").keys()) if l != ".kibana_1"]

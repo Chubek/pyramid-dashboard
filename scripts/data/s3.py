@@ -1,7 +1,7 @@
 import boto3
 import os
 import pandas as pd
-from scripts.data.es import insert_doc
+from scripts.data.es import insert_doc, change_es_host
 s3_resource = boto3.resource('s3')
 from dotenv import dotenv_values
 import datetime
@@ -39,7 +39,7 @@ def add_to_index(f):
     with open(temp['INDEX_FILE'], mode) as faw:
         faw.write(f"{f}\n")
 
-def main_s3(bucket_name):
+def main_s3(bucket_name, es_host=temp[temp['MAIN_ES_HOST']]):
     if not os.path.exists(temp['TEMP_FOLDER']):
         os.makedirs(temp['TEMP_FOLDER'])
     
@@ -56,6 +56,7 @@ def main_s3(bucket_name):
         
         if not os.path.exists(os.path.join(temp['TEMP_FOLDER'], file_name)):
             s3.Object(bucket_name, file_name).download_file(os.path.join(temp['TEMP_FOLDER'], file_name))
+        change_es_host(es_host)
         insert_file_to_es(file_name)
         add_to_added(file_name)
 

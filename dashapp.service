@@ -1,0 +1,13 @@
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/dashapp
+Environment="PATH=/home/dashapp/venv/bin"
+ExecStart=/home/dashapp/venv/bin/gunicorn -b :8000 --access-logfile - --timeout 800 --error-logfile - dashboard:app.server
+
+[Install]
+WantedBy=multi-user.target

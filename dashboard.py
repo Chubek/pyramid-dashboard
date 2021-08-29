@@ -39,11 +39,12 @@ CONTENT_STYLE = {
 }
 
 list_choices = [{"label": l, "value": l} for l in get_all_indices()]
-list_choices_time = [{"label": l, "value": l} for l in ["Daily", "Weekly", "Monthly"]]
+list_choices_time = [{"label": l, "value": l} for l in ["Daily", "Weekly", "Monthly", "All Time"]]
 list_choices_period = {
     "Daily":  [{"label": l, "value": int(l)} for l in ["30", "90", "180", "360"]],
     "Weekly":  [{"label": l, "value": int(l)} for l in ["4", "12", "24", "52"]],
     "Monthly":  [{"label": l, "value": int(l)} for l in ["3", "6", "9", "12", "15", "18", "24"]],
+    "All Time": [{"label": "∞", "value": "∞"}]
 }
 df = get_all_results(index_name=list_choices[0]["value"])
 
@@ -57,7 +58,8 @@ card_dropdown = dbc.Card(
             dcc.Dropdown(
                 id='product-dropdown',
                 options=list_choices,
-                value=list_choices[0]["value"]
+                value=list_choices[0]["value"],
+                clearable=False
             ),
         ]
     )
@@ -70,7 +72,8 @@ card_period = dbc.Card(
             dcc.Dropdown(
                 id='period-dropdown',
                 options=list_choices_period["Daily"],
-                value=list_choices_period["Daily"][0]["value"]
+                value=list_choices_period["Daily"][0]["value"],
+                clearable=False
             ),
         ]
     )
@@ -83,7 +86,8 @@ card_dropdown_time = dbc.Card(
             dcc.Dropdown(
                 id='time-dropdown',
                 options=list_choices_time,
-                value=list_choices_time[0]["value"]
+                value=list_choices_time[3]["value"],
+                clearable=False
             ),
         ]
     )
@@ -111,7 +115,8 @@ card_dropdown_bar = dbc.Card(
             dcc.Dropdown(
                 id='bar-dropdown',
                 options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"]
+                value=list_choices_metrics[0]["value"],
+                clearable=False
             ),
         ]
     )
@@ -134,7 +139,8 @@ card_dropdown_line = dbc.Card(
             dcc.Dropdown(
                 id='line-dropdown',
                 options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"]
+                value=list_choices_metrics[0]["value"],
+                clearable=False
             ),
         ]
     )
@@ -159,7 +165,8 @@ card_dropdown_scatter_x = dbc.Card(
             dcc.Dropdown(
                 id='sxs-dropdown',
                 options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"]
+                value=list_choices_metrics[0]["value"],
+                clearable=False
             ),
         ]
     )
@@ -171,7 +178,8 @@ card_dropdown_scatter_y = dbc.Card(
             dcc.Dropdown(
                 id='sys-dropdown',
                 options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"]
+                value=list_choices_metrics[0]["value"],
+                clearable=False
             ),
         ]
     )
@@ -195,7 +203,8 @@ card_dropdown_hist = dbc.Card(
             dcc.Dropdown(
                 id='hist-dropdown',
                 options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"]
+                value=list_choices_metrics[0]["value"],
+                clearable=False
             ),
         ]
     )
@@ -453,17 +462,23 @@ def update_table(page_current,page_size, filter, start_date, dropdown, period, m
         return get_all_results(metric), 0, "", list_choices_period[metric], list_choices_period[metric][0]
     elif input_id =="time-dropdown" or input_id == "period-dropdown" or input_id == "date-picker-range":
         if dropdown == "Daily":
+            print(start_date, dropdown, period, metric)
             df_filt = filter_daily(df, start_date, period)
             df = df_filt
         elif dropdown == "Weekly":
+            print(start_date, dropdown, period, metric)
             df_filt = filter_weekly(df, start_date, period)
             df = df_filt
         elif dropdown == "Monthly":
+            print(start_date, dropdown, period, metric)
             df_filt = filter_monthly(df, start_date, period)
             df = df_filt
-        else:
-            df_filt = df
-        return df_filt, 0, ""
+        elif dropdown == "All Time":
+            df_filt = get_all_results(metric)
+        
+        return df_filt.iloc[
+            page_current*page_size:(page_current+ 1)*page_size
+        ].to_dict('records')
 
 
 
