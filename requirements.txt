@@ -1,7 +1,7 @@
 boto3
 dash
 dash-bootstrap-components
-elasticsearch
+elasticsearch<7.14.0
 Flask
 gunicorn
 numpy
