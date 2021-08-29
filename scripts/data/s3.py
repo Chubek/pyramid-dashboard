@@ -39,7 +39,7 @@ def add_to_index(f):
     with open(temp['INDEX_FILE'], mode) as faw:
         faw.write(f"{f}\n")
 
-def main_s3(bucket_name, es_host=temp[temp['MAIN_ES_HOST']]):
+def main_s3(bucket_name, es_host=temp['MAIN_ES_HOST']):
     if not os.path.exists(temp['TEMP_FOLDER']):
         os.makedirs(temp['TEMP_FOLDER'])
     
