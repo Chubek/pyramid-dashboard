@@ -4,7 +4,7 @@ WORKDIR /home/dash-cron
 
 COPY . ./
 
-RUN apt-get --allow-releaseinfo-change update && apt-get upgrade
+RUN apt-get update
 RUN apt-get -y install cron
 
 ADD crontab /etc/cron.d/hello-cron
