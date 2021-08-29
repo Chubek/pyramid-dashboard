@@ -4,7 +4,7 @@ WORKDIR /home/dash-cron
 
 COPY . ./
 
-RUN apt-get update
+RUN apt-get --allow-releaseinfo-change update && apt-get upgrade
 RUN apt-get -y install cron
 
 ADD crontab /etc/cron.d/hello-cron
@@ -13,7 +13,7 @@ RUN chmod 0644 /etc/cron.d/hello-cron
 
 RUN touch /var/log/cron.log
 
-RUN apt-get update && apt-get upgrade && apt-get install build-essential libsvm-dev ffmpeg libsm6 libxext6 -y
+RUN apt-get install build-essential libsvm-dev ffmpeg libsm6 libxext6 -y
 
 RUN pip3 install -r /requirements.txt
 
