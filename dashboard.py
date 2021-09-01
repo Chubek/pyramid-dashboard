@@ -15,7 +15,7 @@ from dotenv import dotenv_values
 import dash_table
 from datetime import date
 from flask import Flask
-
+from metrics_dict import metrics_dict
 
 temp = dotenv_values(".env")
 
@@ -42,6 +42,7 @@ CONTENT_STYLE = {
 }
 
 list_choices = [{"label": l, "value": l} for l in get_all_indices()]
+metrics = metrics_dict[list_choices[0]["value"]]
 list_choices_time = [{"label": l, "value": l} for l in ["Daily", "Weekly", "Monthly", "All Time"]]
 list_choices_period = {
     "Daily":  [{"label": l, "value": int(l)} for l in ["30", "90", "180", "360"]],
@@ -51,7 +52,7 @@ list_choices_period = {
 }
 df = get_all_results(index_name=list_choices[0]["value"])
 
-list_choices_metrics = [{"label": l, "value": l} for l in [col for col in list(df.columns) if "metric" in col]]
+#list_choices_metrics = [{"label": l, "value": l} for l in [col for col in list(df.columns) if "metric" in col]]
 
 
 card_dropdown = dbc.Card(
@@ -111,120 +112,51 @@ card_dropdown_date = dbc.Card(
         ]
     )
 )
-card_dropdown_bar = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Pick a Metric for Bar Chart", id="bar-metric-title"),
-            dcc.Dropdown(
-                id='bar-dropdown',
-                options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"],
-                clearable=False
-            ),
-        ]
-    )
-)
-card_bar = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Bar Chart", id="card-bar-title"),
-            dcc.Graph(
+
+line_charts = []
+bar_charts = []
+histograms = []
+
+def construct_all_charts(metrics):
+    for metric in metrics:    
+        bar_charts.append(dbc.Card(
+        dbc.CardBody(
+            [
+                html.H4("Bar Chart", id="card-bar-title"),
+                dcc.Graph(
                     id='bar-chart',
-                    figure=construct_bar_chart(df, temp['DATE_TIME_COLUMN'], list_choices_metrics[0]["value"], "group", "Customer Name - Metric A Plot")
-    )
-        ]
-    )
-)
-card_dropdown_line = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Pick a Metric for Line Chart", id="line-metric-title"),
-            dcc.Dropdown(
-                id='line-dropdown',
-                options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"],
-                clearable=False
-            ),
-        ]
-    )
-)
-
-card_line = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Line Chart", id="card-line-title"),
-            dcc.Graph(
+                    figure=construct_bar_chart(df, temp['DATE_TIME_COLUMN'], metric, "group", f"{metric} - Time Line Plot")
+                )
+            ]
+        )
+    ))
+    
+        line_charts.append(dbc.Card(
+            dbc.CardBody(
+            [
+                html.H4("Line Chart", id="card-line-title"),
+                dcc.Graph(
                     id='line-chart',
-                    figure=construct_line_chart(df, temp['DATE_TIME_COLUMN'], list_choices_metrics[0]["value"], "Customer Name - Metric A Plot")
-    )
-        ]
-    )
-)
+                    figure=construct_line_chart(df, temp['DATE_TIME_COLUMN'], metric, f"{metric} - Time Line Plot")
+        )
+                ]
+            )
+        ))
 
-card_dropdown_scatter_x = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Pick a Metric for Scatter Chart X", id="xsx-metric-title"),
-            dcc.Dropdown(
-                id='sxs-dropdown',
-                options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"],
-                clearable=False
-            ),
-        ]
-    )
-)
-card_dropdown_scatter_y = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Pick a Metric for Scatter Chart X", id="ysy-metric-title"),
-            dcc.Dropdown(
-                id='sys-dropdown',
-                options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"],
-                clearable=False
-            ),
-        ]
-    )
-)
-card_scatter = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Scatter Chart", id="card-scatter-title"),
-            dcc.Graph(
-                    id='scatter-chart',
-                    figure=construct_scatter_chart(df, list_choices_metrics[1]["value"], list_choices_metrics[0]["value"], "Metric C - Metric A Plot")
-    )
-        ]
-    )
-)
-
-card_dropdown_hist = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Pick a Metric for Histogram", id="hist-metric-title"),
-            dcc.Dropdown(
-                id='hist-dropdown',
-                options=list_choices_metrics,
-                value=list_choices_metrics[0]["value"],
-                clearable=False
-            ),
-        ]
-    )
-)
-
-
-card_histogram = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Histogram", id="card-histogram-title"),
-            dcc.Graph(
+        histograms.append(dbc.Card(
+            dbc.CardBody(
+            [
+                html.H4("Histogram", id="card-histogram-title"),
+                dcc.Graph(
                     id='hist-chart',
-                    figure=construct_histogram(df, list_choices_metrics[0]["value"], "Metric A Histogram")
-    )
-        ]
-    )
-)
+                    figure=construct_histogram(df, metric, f"{metric} Histogram")
+        )   
+            ]
+        )
+        ))
+
+def construct_children(metrics):
+    
 
 card_table= dbc.Card(
     dbc.CardBody(
@@ -320,45 +252,17 @@ def render_page_content(pathname):
                 dbc.Row(
                     card_dropdown_date,
                 ),
-            ]),      
+            ]),  
+                        ]
+                    ),
 
+            html.Div(
+                id="plots-div",
+                children=construct_children(metrics)
+            )
+                ]   
+            )
 
-
-                
-                 ]    
-                        
-        ),
-        dbc.Row(
-            [
-                dbc.Row([
-                    dbc.Col(card_bar,
-                        width={"size": 8, "order": "last", "offset": 1}),
-                    dbc.Row(card_dropdown_bar)
-                ]),
-                dbc.Row([
-                    dbc.Col(card_line,
-                        width={"size": 8, "order": "last", "offset": 1}),
-                    dbc.Col(card_dropdown_line)
-                ]),
-            ]
-        ),
-        dbc.Row([
-                dbc.Row([
-                    dbc.Col(card_scatter,
-                        width={"size": 8, "order": "last", "offset": 1}),
-                    dbc.Col([
-                        dbc.Row(card_dropdown_scatter_x),
-                        dbc.Row(card_dropdown_scatter_y)
-                    ])
-                ]),
-                dbc.Row([
-                    dbc.Col(card_histogram,
-                        width={"size": 8, "order": "last", "offset": 1}),
-                    dbc.Col(card_dropdown_hist)
-                ]),
-        ]),
-    ]
-)
     elif pathname == '/movers-and-shaker':
         return html.Div([
             html.H3('Tab content 2')
@@ -433,7 +337,7 @@ def change_line_chart(value):
     Input('time-dropdown', 'value'),
     Input('period-dropdown', 'value'),
     Input('product-dropdown', 'value'))
-def update_table(page_current,page_size, filter, start_date, dropdown, period, metric):
+def update_table(page_current,page_size, filter, start_date, dropdown, period, product):
     ctx = dash.callback_context
     global df
     print(ctx.triggered)
@@ -461,7 +365,7 @@ def update_table(page_current,page_size, filter, start_date, dropdown, period, m
         return dff.iloc[
             page_current*page_size:(page_current+ 1)*page_size
         ].to_dict('records')
-    elif input_id == "metrics-dropdown":
+    elif input_id == "products-dropdown":
         return get_all_results(metric), 0, "", list_choices_period[metric], list_choices_period[metric][0]
     elif input_id =="time-dropdown" or input_id == "period-dropdown" or input_id == "date-picker-range":
         if dropdown == "Daily":
