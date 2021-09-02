@@ -113,11 +113,12 @@ card_dropdown_date = dbc.Card(
     )
 )
 
-line_charts = []
-bar_charts = []
-histograms = []
 
 def construct_all_charts(metrics):
+    line_charts = []
+    bar_charts = []
+    histograms = []
+
     for metric in metrics:    
         bar_charts.append(dbc.Card(
         dbc.CardBody(
@@ -155,8 +156,25 @@ def construct_all_charts(metrics):
         )
         ))
 
+    return line_charts, bar_charts, histograms
+
 def construct_children(metrics):
-    
+    line_charts, bar_charts, histograms = construct_all_charts(metrics)
+
+    cards_bar = []
+    cards_line = []
+    cards_hist = []
+
+    for line_chart in line_charts:
+        cards_line.append(dbc.Row(line_chart))
+
+    for bar_chart in bar_charts:
+        cards_bar.append(dbc.Row(bar_chart))
+
+    for hist in histograms:
+        cards_hist.append(dbc.Row(hist))
+
+    return [dbc.Row([*cards_bar, *cards_line, *cards_hist])]
 
 card_table= dbc.Card(
     dbc.CardBody(
