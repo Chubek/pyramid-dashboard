@@ -322,32 +322,8 @@ def split_filter_part(filter_part):
     return [None] * 3
 
 @app.callback(
-    Output('bar-chart', "figure"),
-    Input('bar-dropdown', "value"))
-def change_bar_chart(value):
-    return construct_bar_chart(df, temp['DATE_TIME_COLUMN'], value, "group", f"Customer Name - {value} Plot")
-
-@app.callback(
-    Output('line-chart', "figure"),
-    Input('line-dropdown', "value"))
-def change_line_chart(value):
-    return construct_line_chart(df, temp['DATE_TIME_COLUMN'], value, f"Customer Name - {value} Plot")
-
-@app.callback(
-    Output('scatter-chart', "figure"),
-    [Input('sxs-dropdown', "value"),
-    Input('sys-dropdown', "value")])
-def change_scattere_chart(value_x, value_y):
-    return construct_scatter_chart(df, value_x, value_y, f"{value_x} - {value_y} Plot")
-
-@app.callback(
-    Output('hist-chart', "figure"),
-    Input('hist-dropdown', "value"))
-def change_line_chart(value):
-    return construct_histogram(df, value, f"{value} Histogram")
-
-@app.callback(
     Output('table-filtering', "data"),
+    Output('plots-div', 'children'),
     Input('table-filtering', "page_current"),
     Input('table-filtering', "page_size"),
     Input('table-filtering', "filter_query"),
@@ -382,28 +358,29 @@ def update_table(page_current,page_size, filter, start_date, dropdown, period, p
 
         return dff.iloc[
             page_current*page_size:(page_current+ 1)*page_size
-        ].to_dict('records')
+        ].to_dict('records'), None
     elif input_id == "products-dropdown":
-        return get_all_results(metric), 0, "", list_choices_period[metric], list_choices_period[metric][0]
+        metrics = metrics_dict[product]
+        return get_all_results(product), construct_children(metrics) 
     elif input_id =="time-dropdown" or input_id == "period-dropdown" or input_id == "date-picker-range":
         if dropdown == "Daily":
-            print(start_date, dropdown, period, metric)
+            print(start_date, dropdown, period, product)
             df_filt = filter_daily(df, start_date, period)
             df = df_filt
         elif dropdown == "Weekly":
-            print(start_date, dropdown, period, metric)
+            print(start_date, dropdown, period, product)
             df_filt = filter_weekly(df, start_date, period)
             df = df_filt
         elif dropdown == "Monthly":
-            print(start_date, dropdown, period, metric)
+            print(start_date, dropdown, period, product)
             df_filt = filter_monthly(df, start_date, period)
             df = df_filt
         elif dropdown == "All Time":
-            df_filt = get_all_results(metric)
+            df_filt = get_all_results(product)
         
         return df_filt.iloc[
             page_current*page_size:(page_current+ 1)*page_size
-        ].to_dict('records')
+        ].to_dict('records'), None
 
 
 
