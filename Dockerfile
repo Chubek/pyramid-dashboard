@@ -1,9 +1,9 @@
-FROM debian:latest
+FROM ubuntu:latest
 WORKDIR /home/dash-fin
 
 COPY . ./
 
-RUN apt-get update & sudo apt upgrade & apt-get install -y \
+RUN apt-get update & apt upgrade & apt-get install -y \
                 build-essential\
                  libsvm-dev\
                   ffmpeg libsm6\
