@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM python:latest
 WORKDIR /home/dash-fin
 
 COPY . ./
@@ -8,3 +8,4 @@ RUN apt-get update && apt upgrade && apt-get install build-essential  libsvm-dev
 RUN pip install --no-cache-dir -r requirements.txt
 
 
+ENTRYPOINT ["/bin/bash"]
