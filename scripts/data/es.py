@@ -60,9 +60,11 @@ def insert_doc(df, index_name):
     df_split = np.array_split(df, 100)
 
     ret = []
-
+    i = 0
     for df_s in df_split:
+        print(f"Inserting dataset {i} of {len(df_split)} for index {index_name}...")
         ret.append(helpers.bulk(es, doc_generator(df_s, index_name)))
-        time.sleep(100)
+        print("Now waiting for 120 secs...")
+        time.sleep(120)
 
     return ret
