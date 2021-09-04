@@ -66,5 +66,6 @@ def insert_doc(df, index_name):
         ret.append(helpers.bulk(es, doc_generator(df_s, index_name)))
         print("Now waiting for 120 secs...")
         time.sleep(120)
+        i += 1
 
     return ret
