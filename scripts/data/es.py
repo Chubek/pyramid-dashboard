@@ -15,7 +15,7 @@ def change_es_host(new_host):
     global es, current_es_host
     
     if new_host != current_es_host:
-        es = Elasticsearch(new_host, maxsize=25)
+        es = Elasticsearch(new_host, maxsize=2500)
 
 
 def get_all_indices():

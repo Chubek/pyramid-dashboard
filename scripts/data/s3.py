@@ -41,4 +41,5 @@ def insert_file_to_es(file_name):
     insert_doc(df, do_repl(file_name))
 
 def do_repl(string):
-    return re.sub(r"[\s\[\"\*\\\<\|\,\>,/\?\]-]", "", string.split(".")[-2]).lower()
+    string = string.split(".")[-2].lower().replace(" ", "_")
+    return re.sub(r"[\[\"\*\\\<\|\,\>,/\?\]]", "", string).lower()
