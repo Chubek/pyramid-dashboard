@@ -3,6 +3,7 @@ from dotenv import dotenv_values
 from elasticsearch import helpers
 import pandas as pd
 from scripts.util.to_datetime import to_datetime
+import numpy as np
 
 temp = dotenv_values(".env")
 
@@ -55,4 +56,11 @@ def doc_generator(df, index_name):
     return True
 
 def insert_doc(df, index_name):
-    return helpers.bulk(es, doc_generator(df, index_name))
+    df_split = np.array_split(df, 100)
+
+    ret = []
+
+    for df_s in df_split:
+        ret.append(helpers.bulk(es, doc_generator(df_s, index_name)))
+
+    return ret
