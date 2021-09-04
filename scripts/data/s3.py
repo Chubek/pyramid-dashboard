@@ -6,6 +6,7 @@ s3_resource = boto3.resource('s3')
 from dotenv import dotenv_values
 import datetime
 import re
+import time
 
 temp = dotenv_values(".env")
 
@@ -33,6 +34,8 @@ def main_s3(bucket_name, es_host=temp['MAIN_ES_HOST']):
             s3.Object(bucket_name, file_name).download_file(os.path.join(temp['TEMP_FOLDER'], file_name))
         change_es_host(es_host)
         insert_file_to_es(file_name)
+        print("File inserted. Waiting 300 seconds...")
+        time.sleep(300)
 
 
 def insert_file_to_es(file_name):
