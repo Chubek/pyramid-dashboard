@@ -1,3 +1,5 @@
 metrics_dict = {
-    "productacustomerdata": ['metric a', 'metric b']
+    "producta": ['metric_a', 'metric_b'],
+    "productb": ['metric_c', 'metric_b']
+
 }
