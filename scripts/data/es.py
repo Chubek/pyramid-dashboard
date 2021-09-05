@@ -9,13 +9,13 @@ import time
 temp = dotenv_values(".env")
 
 current_es_host = temp['MAIN_ES_HOST']
-es = Elasticsearch([{'host': temp['MAIN_ES_HOST'], 'port': 443,  'use_ssl': True}])
+es = Elasticsearch([{'host': temp['MAIN_ES_HOST'], 'port': 443}], use_ssl=True, verify_certs=True)
 
 def change_es_host(new_host):
     global es, current_es_host
     
     if new_host != current_es_host:
-        es = Elasticsearch([{'host': new_host, 'port': 443,  'use_ssl': True}])
+        es = Elasticsearch([{'host': new_host, 'port': 443}], use_ssl=True, verify_certs=True)
         current_es_host = new_host
 
 
