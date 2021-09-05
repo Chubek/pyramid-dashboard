@@ -114,7 +114,7 @@ card_dropdown_date = dbc.Card(
 )
 
 
-def construct_all_charts(metrics):
+def construct_all_charts(metrics, df):
     line_charts = []
     bar_charts = []
     histograms = []
@@ -158,28 +158,28 @@ def construct_all_charts(metrics):
 
     return line_charts, bar_charts, histograms
 
-def construct_children(metrics):
-    line_charts, bar_charts, histograms = construct_all_charts(metrics)
+def construct_children(metrics, df):
+    line_charts, bar_charts, histograms = construct_all_charts(metrics, df)
 
     cards_bar = []
     cards_line = []
     cards_hist = []
 
     for line_chart in line_charts:
-        cards_line.append(dbc.Row(line_chart))
+        cards_line.append(dbc.Col(line_chart))
 
     for bar_chart in bar_charts:
-        cards_bar.append(dbc.Row(bar_chart))
+        cards_bar.append(dbc.Col(bar_chart))
 
     for hist in histograms:
-        cards_hist.append(dbc.Row(hist))
+        cards_hist.append(dbc.Col(hist))
 
-    return [dbc.Row([*cards_bar, *cards_line, *cards_hist])]
+    return [dbc.Col([*cards_bar, *cards_line, *cards_hist])]
 
 card_table= dbc.Card(
     dbc.CardBody(
         [
-            html.H4("Data Table", id="card-table-title"),
+            html.H4(f"Data Table for {list_choices[0]['value']}", id="card-table-title"),
             dash_table.DataTable(
                 id='table-filtering',
                 columns=[
@@ -276,7 +276,7 @@ def render_page_content(pathname):
 
             html.Div(
                 id="plots-div",
-                children=construct_children(metrics)
+                children=construct_children(metrics, df)
             )
                 ]   
             )
@@ -324,6 +324,7 @@ def split_filter_part(filter_part):
 @app.callback(
     Output('table-filtering', "data"),
     Output('plots-div', 'children'),
+    Output('card-table-title', 'children'),
     Input('table-filtering', "page_current"),
     Input('table-filtering', "page_size"),
     Input('table-filtering', "filter_query"),
@@ -334,6 +335,7 @@ def split_filter_part(filter_part):
 def update_table(page_current,page_size, filter, start_date, dropdown, period, product):
     ctx = dash.callback_context
     global df
+    metrics = metrics_dict[product]
     print(ctx.triggered)
     if not ctx.triggered:
         input_id = 'No clicks yet'
@@ -358,10 +360,13 @@ def update_table(page_current,page_size, filter, start_date, dropdown, period, p
 
         return dff.iloc[
             page_current*page_size:(page_current+ 1)*page_size
-        ].to_dict('records'), None
-    elif input_id == "products-dropdown":
+        ].to_dict('records'), construct_children(metrics, dff), f"Data Table for {product}"
+    elif input_id == "product-dropdown":
         metrics = metrics_dict[product]
-        return get_all_results(product), construct_children(metrics) 
+        df = get_all_results(product)
+        return df.iloc[
+            page_current*page_size:(page_current+ 1)*page_size
+        ].to_dict('records'), construct_children(metrics, df), f"Data Table for {product}"
     elif input_id =="time-dropdown" or input_id == "period-dropdown" or input_id == "date-picker-range":
         if dropdown == "Daily":
             print(start_date, dropdown, period, product)
@@ -380,7 +385,7 @@ def update_table(page_current,page_size, filter, start_date, dropdown, period, p
         
         return df_filt.iloc[
             page_current*page_size:(page_current+ 1)*page_size
-        ].to_dict('records'), None
+        ].to_dict('records'), construct_children(metrics, df_filt), f"Data Table for {product}"
 
 
 
