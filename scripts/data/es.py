@@ -9,13 +9,13 @@ import time
 temp = dotenv_values(".env")
 
 current_es_host = temp['MAIN_ES_HOST']
-es = Elasticsearch(temp['MAIN_ES_HOST'], maxsize=25)
+es = Elasticsearch([{'host': temp['MAIN_ES_HOST'], 'port': 443,  'use_ssl': True}])
 
 def change_es_host(new_host):
     global es, current_es_host
     
     if new_host != current_es_host:
-        es = Elasticsearch(new_host, maxsize=3500)
+        es = Elasticsearch([{'host': new_host, 'port': 443,  'use_ssl': True}])
 
 
 def get_all_indices():
@@ -57,15 +57,15 @@ def doc_generator(df, index_name):
     return True
 
 def insert_doc(df, index_name):
-    df_split = np.array_split(df, 100)
+    df_split = np.array_split(df, 50)
 
     ret = []
     i = 0
     for df_s in df_split:
         print(f"Inserting dataset {i} of {len(df_split)} for index {index_name}...")
         ret.append(helpers.bulk(es, doc_generator(df_s, index_name)))
-        print("Now waiting for 120 secs...")
-        time.sleep(120)
+        print("Now waiting for 40 secs...")
+        time.sleep(30)
         i += 1
 
     return ret

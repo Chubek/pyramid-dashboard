@@ -41,7 +41,7 @@ CONTENT_STYLE = {
     'overflowX': 'hidden'
 }
 
-list_choices = [{"label": l, "value": l} for l in get_all_indices()]
+list_choices = [{"label": l, "value": l} for l in get_all_indices() if not "customerdata" in l]
 metrics = metrics_dict[list_choices[0]["value"]]
 list_choices_time = [{"label": l, "value": l} for l in ["Daily", "Weekly", "Monthly", "All Time"]]
 list_choices_period = {
