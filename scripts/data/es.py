@@ -16,6 +16,7 @@ def change_es_host(new_host):
     
     if new_host != current_es_host:
         es = Elasticsearch([{'host': new_host, 'port': 443,  'use_ssl': True}])
+        current_es_host = new_host
 
 
 def get_all_indices():
