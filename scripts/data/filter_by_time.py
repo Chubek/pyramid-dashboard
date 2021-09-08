@@ -10,7 +10,7 @@ temp = dotenv_values(".env")
 
 
 def filter_daily(df, day_start, num_days):
-    day_start = parser.parse(day_start)
+    #day_start = parser.parse(day_start)
 
     day_end = day_start + datetime.timedelta(days=num_days)
 

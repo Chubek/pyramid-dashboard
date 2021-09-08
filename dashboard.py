@@ -69,46 +69,17 @@ card_dropdown = dbc.Card(
     )
 )
 
-card_period = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Pick a Period", id="card-bar-title"),
-            dcc.Dropdown(
-                id='period-dropdown',
-                options=list_choices_period["Daily"],
-                value=list_choices_period["Daily"][0]["value"],
-                clearable=False
-            ),
-        ]
-    )
-)
-
-card_dropdown_time = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Pick a Time Range", id="card-bar-title"),
-            dcc.Dropdown(
-                id='time-dropdown',
-                options=list_choices_time,
-                value=list_choices_time[3]["value"],
-                clearable=False
-            ),
-        ]
-    )
-)
-
 card_dropdown_date = dbc.Card(
     dbc.CardBody(
         [
-            html.H4("Pick a Start and End Date", id="card-bar-title"),
-            dcc.DatePickerSingle(
-                id='date-picker-range',
-                min_date_allowed=date(1995, 8, 5),
-                max_date_allowed=date.today(),
-                initial_visible_month=df.iloc[0][temp['DATE_TIME_COLUMN']] ,
-                date=df.iloc[0][temp['DATE_TIME_COLUMN']] ,
-                
-                 ),
+            html.H4("Pick a Number of Day from Today", id="card-bar-title"),
+            dcc.Slider(
+                    id='day-slider',
+                    min=0,
+                    max=1000,
+                    step=1,
+                    value=100,
+    ),
         ]
     )
 )
@@ -237,13 +208,6 @@ operators = [['ge ', '>='],
              ['contains '],
              ['datestartswith ']]
 
-@app.callback(
-    Output("period-dropdown", "options"),
-    Output("period-dropdown", "value"),
-    Input("time-dropdown", "value"))
-def time_period(value):
-    print(list_choices_period[value], list_choices_period[value][0]['value'])
-    return list_choices_period[value], list_choices_period[value][0]['value']
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
@@ -260,12 +224,6 @@ def render_page_content(pathname):
             dbc.Col([
                 dbc.Row(
                     card_dropdown,
-                ),
-                dbc.Row(
-                    card_period,
-                ),
-                dbc.Row(
-                    card_dropdown_time,
                 ),
                 dbc.Row(
                     card_dropdown_date,
@@ -328,11 +286,9 @@ def split_filter_part(filter_part):
     Input('table-filtering', "page_current"),
     Input('table-filtering', "page_size"),
     Input('table-filtering', "filter_query"),
-    Input('date-picker-range', 'date'),
-    Input('time-dropdown', 'value'),
-    Input('period-dropdown', 'value'),
+    Input('day-slider', 'value'),
     Input('product-dropdown', 'value'))
-def update_table(page_current,page_size, filter, start_date, dropdown, period, product):
+def update_table(page_current,page_size, filter, days, product):
     ctx = dash.callback_context
     global df
     metrics = metrics_dict[product]
@@ -367,25 +323,18 @@ def update_table(page_current,page_size, filter, start_date, dropdown, period, p
         return df.iloc[
             page_current*page_size:(page_current+ 1)*page_size
         ].to_dict('records'), construct_children(metrics, df), f"Data Table for {product}"
-    elif input_id =="time-dropdown" or input_id == "period-dropdown" or input_id == "date-picker-range":
-        if dropdown == "Daily":
-            print(start_date, dropdown, period, product)
-            df_filt = filter_daily(df, start_date, period)
-            df = df_filt
-        elif dropdown == "Weekly":
-            print(start_date, dropdown, period, product)
-            df_filt = filter_weekly(df, start_date, period)
-            df = df_filt
-        elif dropdown == "Monthly":
-            print(start_date, dropdown, period, product)
-            df_filt = filter_monthly(df, start_date, period)
-            df = df_filt
-        elif dropdown == "All Time":
-            df_filt = get_all_results(product)
+    elif input_id =="day-slider":        
+        df_filt = filter_daily(df, datetime.today(), days)
+        df = df_filt
+    
         
         return df_filt.iloc[
             page_current*page_size:(page_current+ 1)*page_size
         ].to_dict('records'), construct_children(metrics, df_filt), f"Data Table for {product}"
+    else:
+        return df.iloc[
+            page_current*page_size:(page_current+ 1)*page_size
+        ].to_dict('records'), construct_children(metrics, df), f"Data Table for {product}"
 
 
 
