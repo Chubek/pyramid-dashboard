@@ -16,6 +16,7 @@ import dash_table
 from datetime import date
 from flask import Flask
 from metrics_dict import metrics_dict
+import plotly.express as px
 
 temp = dotenv_values(".env")
 
@@ -118,27 +119,28 @@ def construct_all_charts(metrics, df):
     line_charts = []
     bar_charts = []
     histograms = []
-
-    for metric in metrics:    
+    print("metrics", metrics)
+    for metric in metrics:
+        print("metric", metric)    
         bar_charts.append(dbc.Card(
         dbc.CardBody(
             [
                 html.H4("Bar Chart", id="card-bar-title"),
                 dcc.Graph(
                     id='bar-chart',
-                    figure=construct_bar_chart(df, temp['DATE_TIME_COLUMN'], metric, "group", f"{metric} - Time Line Plot")
+                    figure=px.bar(df, x=temp['DATE_TIME_COLUMN'], y=metric, barmode="group", title=f"{metric} - Time Bar Plot")
                 )
             ]
         )
     ))
-    
+        
         line_charts.append(dbc.Card(
             dbc.CardBody(
             [
                 html.H4("Line Chart", id="card-line-title"),
                 dcc.Graph(
                     id='line-chart',
-                    figure=construct_line_chart(df, temp['DATE_TIME_COLUMN'], metric, f"{metric} - Time Line Plot")
+                    figure=px.line(df, x=temp['DATE_TIME_COLUMN'], y=metric, title=f"{metric} - Time Line Plot")
         )
                 ]
             )
@@ -150,7 +152,7 @@ def construct_all_charts(metrics, df):
                 html.H4("Histogram", id="card-histogram-title"),
                 dcc.Graph(
                     id='hist-chart',
-                    figure=construct_histogram(df, metric, f"{metric} Histogram")
+                    figure=px.histogram(df, x=metric, title=f"{metric} Histogram")
         )   
             ]
         )
