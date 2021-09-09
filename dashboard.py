@@ -70,7 +70,7 @@ card_dropdown = dbc.Card(
 )
 
 card_dropdown_date = dbc.Card(
-    dbc.CardBody(
+    dbc.Card(
         [
             html.H4("Pick a Number of Day from Today", id="card-bar-title"),
             dcc.Slider(
@@ -79,8 +79,21 @@ card_dropdown_date = dbc.Card(
                     max=1000,
                     step=1,
                     value=100,
+                    marks={
+                         100: {'label': '100 Days', 'style': {'color': '#77b0b1'}},
+                         200: {'label': '200 Days', 'style': {'color': '#87b0b1'}},
+                         300: {'label': '300 Days', 'style': {'color': '#77a0b1'}},
+                         400: {'label': '400 Days', 'style': {'color': '#77b2b1'}},
+                         500: {'label': '500 Days', 'style': {'color': '#7750b1'}},
+                         600: {'label': '600 Days', 'style': {'color': '#77e0b1'}},
+                         700: {'label': '700 Days', 'style': {'color': '#7db0b1'}},
+                        800: {'label': '800 Days', 'style': {'color': '#8db0b1'}},
+                         900: {'label': '900 Days', 'style': {'color': '#7db0b2'}},
+
+       
+                 },
     ),
-        ]
+        ], style={'width':'100vh'}
     )
 )
 
@@ -216,29 +229,25 @@ def render_page_content(pathname):
     if pathname == '/metrics':
         return html.Div(
     [
-        dbc.Row([
-            dbc.Col(
-                    card_table,
-                    width={"size": 12, "order": 1, "offset": 1},
-                ),
-            dbc.Col([
-                dbc.Row(
+         
+         dbc.Row(
                     card_dropdown,
                 ),
                 dbc.Row(
-                    card_dropdown_date,
+                    card_dropdown_date, 
                 ),
-            ]),  
-                        ]
-                    ),
+                dbc.Row(
+                    card_table
+                ),
+               
+    
+    
 
             html.Div(
                 id="plots-div",
                 children=construct_children(metrics, df)
             )
-                ]   
-            )
-
+    ])
     elif pathname == '/movers-and-shaker':
         return html.Div([
             html.H3('Tab content 2')
