@@ -45,4 +45,4 @@ def get_days():
 
     results = filter_daily(df, datetime.datetime.today(), days)
 
-    return jsonify({"inserted_files": result})
+    return jsonify({"inserted_files": results})
