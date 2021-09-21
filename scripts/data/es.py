@@ -34,7 +34,9 @@ def get_results(index_name, query_type, field_name, field_match):
     return df
 
 
-def get_all_results(index_name):
+def get_all_results(index_name, es_host):
+    change_es_host(es_host)
+
     res = es.search(index=index_name, body={"query":{"match_all":{}}})
 
 
@@ -58,15 +60,4 @@ def doc_generator(df, index_name):
     return True
 
 def insert_doc(df, index_name):
-    df_split = np.array_split(df, 50)
-
-    ret = []
-    i = 0
-    for df_s in df_split:
-        print(f"Inserting dataset {i} of {len(df_split)} for index {index_name}...")
-        ret.append(helpers.bulk(es, doc_generator(df_s, index_name)))
-        print("Now waiting for 40 secs...")
-        time.sleep(30)
-        i += 1
-
-    return ret
+    helpers.bulk(es, doc_generator(df, index_name))

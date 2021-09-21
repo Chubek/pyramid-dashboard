@@ -3,6 +3,7 @@ dash
 dash-bootstrap-components
 elasticsearch<7.14.0
 flask
+flask-cors
 gunicorn
 numpy
 pandas

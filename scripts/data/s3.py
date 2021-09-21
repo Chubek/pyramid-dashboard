@@ -15,14 +15,21 @@ sesssion = boto3.Session(temp['ACCESS_KEY_ID'], temp['SECRET_ACCESS_KEY'])
 s3 = sesssion.resource('s3')
 
 
-def main_s3(bucket_name, es_host=temp['MAIN_ES_HOST']):
+def main_s3(bucket_name, es_host, access_key_id, secret_access_key):
     if not os.path.exists(temp['TEMP_FOLDER']):
         os.makedirs(temp['TEMP_FOLDER'])
     
+    change_es_host(es_host)
+
+    sesssion = boto3.Session(access_key_id, secret_access_key)
+
+    s3 = sesssion.resource('s3')
+
+
     already_added = get_all_indices()
 
     bucket = s3.Bucket(bucket_name)
-
+    files_inserted = []
     for obj in bucket.objects.all():
         file_name = obj.key
         print(f"Doing {file_name}...")
@@ -32,10 +39,10 @@ def main_s3(bucket_name, es_host=temp['MAIN_ES_HOST']):
         
         if not os.path.exists(os.path.join(temp['TEMP_FOLDER'], file_name)):
             s3.Object(bucket_name, file_name).download_file(os.path.join(temp['TEMP_FOLDER'], file_name))
-        change_es_host(es_host)
         insert_file_to_es(file_name)
-        print("File inserted. Waiting 300 seconds...")
-        time.sleep(300)
+        files_inserted.append(file_name)
+
+    return files_inserted
 
 
 def insert_file_to_es(file_name):
