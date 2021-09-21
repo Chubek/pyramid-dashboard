@@ -14,6 +14,7 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route("/insert_from_s3", methods=["POST"])
+@cross_origin()
 def insert_flask():
     es_host = request.form['es_host']
     access_key_id = request.form['access_key_id']
@@ -26,6 +27,7 @@ def insert_flask():
 
 
 @app.route("/get_all_results", methods=["POST"])
+@cross_origin()
 def get_flask():
     es_host = request.form['es_host']
     index_name = request.form['index_name']
@@ -36,6 +38,7 @@ def get_flask():
 
 
 @app.route("/get_results_with_added_days", methods=["POST"])
+@cross_origin()
 def get_days():
     es_host = request.form['es_host']
     index_name = request.form['index_name']
