@@ -32,7 +32,7 @@ Returns:
 
 
 ```
-Endpoint: /get_all_result
+Endpoint: /get_all_results
 Request Method: POST
 Request Body Type: Form Data
 
@@ -60,3 +60,5 @@ Required Parametes:
 Returns:
 ---  data: The dataset in JSON form.
 ```
+
+**NOTE**: Ender hosts WITHOUT `https://`
