@@ -19,8 +19,9 @@ def main_s3(bucket_name, es_host, access_key_id, secret_access_key):
     if not os.path.exists(temp['TEMP_FOLDER']):
         os.makedirs(temp['TEMP_FOLDER'])
     
+    print("Changing host...")
     change_es_host(es_host)
-
+    print("Host changed. Connecting to S3...")
     sesssion = boto3.Session(access_key_id, secret_access_key)
 
     s3 = sesssion.resource('s3')
@@ -39,9 +40,10 @@ def main_s3(bucket_name, es_host, access_key_id, secret_access_key):
         
         if not os.path.exists(os.path.join(temp['TEMP_FOLDER'], file_name)):
             s3.Object(bucket_name, file_name).download_file(os.path.join(temp['TEMP_FOLDER'], file_name))
+        print("Inserting file...")
         insert_file_to_es(file_name)
         files_inserted.append(file_name)
-
+        print("File inserted.")
     return files_inserted
 
 

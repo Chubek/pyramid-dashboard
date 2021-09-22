@@ -35,14 +35,18 @@ def get_results(index_name, query_type, field_name, field_match):
 
 
 def get_all_results(index_name, es_host):
+    print("Changing host...")
     change_es_host(es_host)
-
+    print("Host changed... Retrieving data.")
     res = es.search(index=index_name, body={"query":{"match_all":{}}})
 
-
+    print("Data retrieved.")
     sources = [r['_source'] for r in res['hits']['hits']]
 
     df = pd.DataFrame(sources)
+
+    print(f"Got {len(df)} records.")
+
     print(df.columns)
     df[temp['DATE_TIME_COLUMN']] = df[temp['DATE_TIME_COLUMN']].apply(lambda x: to_datetime(x))
 
